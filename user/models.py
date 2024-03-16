@@ -1,9 +1,44 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 
-class User(models.Model):
-    email = models.EmailField()
-    password = models.CharField(max_length=20)
+class UserManager(BaseUserManager):
+    def create_user(self, email, password, **kwargs):
+        """
+        주어진 이메일, 비밀번호 등 개인정보로 User 인스턴스 생성
+        """
+        if not email:
+            raise ValueError('Users must have an email address')
+        user = self.model(
+            email=email,
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email=None, password=None, **extra_fields):
+        superuser = self.create_user(
+            email=email,
+            password=password,
+        )
+
+        superuser.is_staff = True
+        superuser.is_superuser = True
+        superuser.is_active = True
+
+        superuser.save(using=self._db)
+        return superuser
+
+
+# AbstractBaseUser를 상속해서 유저 커스텀
+class User(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(max_length=30, unique=True, null=False, blank=False)
+    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(null=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
