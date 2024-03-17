@@ -1,4 +1,5 @@
 import jwt
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from .serializers import *
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
@@ -10,6 +11,8 @@ from config.settings import SECRET_KEY
 
 
 class RegisterAPIView(APIView):
+
+    @swagger_auto_schema(request_body=UserSerializer)
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -66,6 +69,7 @@ class AuthAPIView(APIView):
         except(jwt.exceptions.InvalidTokenError):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(request_body=UserSerializer)
     def post(self, request):
         user = authenticate(
             email=request.data.get("email"), password=request.data.get("password")
