@@ -1,18 +1,27 @@
 from django.http import Http404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 from task.models import TaskGroup
+from task.pagination import PaginationHandlerMixin
 from user.models import User
 from task.serializers import TaskGroupSerializer
 
 
-class TaskGroupList(APIView):
+class TaskGroupPagination(PageNumberPagination):
+    page_size_query_param = 'limit'
+
+
+class TaskGroupList(APIView, PaginationHandlerMixin):
     permission_classes = [IsAuthenticated]
+
+    pagination_class = TaskGroupPagination
+    serializer_class = TaskGroupSerializer
 
     @swagger_auto_schema(
         request_body=TaskGroupSerializer
@@ -26,9 +35,14 @@ class TaskGroupList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        task_groups = TaskGroup.objects.all()
-        serializer = TaskGroupSerializer(task_groups, many=True)
-        return Response(serializer.data)
+        task_groups = TaskGroup.objects.order_by('-created_at')
+        page = self.paginate_queryset(task_groups)
+
+        if page is not None:
+            serializer = self.get_paginated_response(self.serializer_class(page, many=True).data)
+        else:
+            serializer = self.serializer_class(task_groups, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TaskGroupDetail(APIView):
