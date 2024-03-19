@@ -1,5 +1,4 @@
 from django.http import Http404
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -8,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 
 from task.models import TaskGroup
-from task.pagination import PaginationHandlerMixin
+from util.pagination import PaginationHandlerMixin
 from user.models import User
 from task.serializers import TaskGroupSerializer
 
