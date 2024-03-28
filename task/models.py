@@ -16,7 +16,7 @@ class TaskGroup(models.Model):
 
 class Task(models.Model):
     name = models.CharField(max_length=30)
-    clear = models.IntegerField()
+    clear = models.BooleanField(default=False)
     date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
