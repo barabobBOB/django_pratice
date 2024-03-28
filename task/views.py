@@ -1,4 +1,5 @@
 from django.http import Http404
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -94,15 +95,29 @@ class TaskListView(APIView, PaginationHandlerMixin):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    task_group_id = openapi.Parameter('task_group_id', openapi.IN_QUERY,
+                                      description='Optional task_group_id query parameter', required=False,
+                                      type=openapi.TYPE_NUMBER)
+
+    @swagger_auto_schema(
+        manual_parameters=[task_group_id]
+    )
     def get(self, request):
         tasks = Task.objects.order_by('-created_at')
+        task_group_id = request.GET.get('task_group_id')
+
+        if task_group_id is not None:
+            tasks = tasks.filter(task_group_id=task_group_id)
+
         page = self.paginate_queryset(tasks)
 
         if page is not None:
             serializer = self.get_paginated_response(self.serializer_class(page, many=True).data)
         else:
             serializer = self.serializer_class(tasks, many=True)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class TaskDetailView(APIView):
     permission_classes = [IsAuthenticated]
