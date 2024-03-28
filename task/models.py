@@ -21,7 +21,7 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True)
-    task_group_id = models.ForeignKey(
+    task_group = models.ForeignKey(
         TaskGroup,
         on_delete=models.CASCADE,
     )
